@@ -3,6 +3,8 @@ import image_to_list
 import re
 import pandas as pd
 
+st.set_page_config(page_title="Bill Spliter", page_icon="💵")
+
 st.markdown(
     """
     <style>
@@ -14,6 +16,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 def create_menu(items):
     # הזנת הסועדים
@@ -113,32 +116,6 @@ def split_bill(tip_percent,items):
                 split_item(st.session_state["splitters"],people,item,tip_percent)
                 
     return people
-# st.session_state["items"] = [
-#     {
-#         "name": "סלט שרי",
-#         "quantity": 1,
-#         "price_per_unit": 52.00,
-#         "total_price": 52.00
-#     },
-#     {
-#         "name": "הפוך גדול",
-#         "quantity": 2,
-#         "price_per_unit": 15.00,
-#         "total_price": 30.00
-#     },
-#     {
-#         "name": "קפה קר",
-#         "quantity": 1,
-#         "price_per_unit": 16.00,
-#         "total_price": 16.00
-#     },
-#     {
-#         "name": "עוגת שקדים ומרווה",
-#         "quantity": 1,
-#         "price_per_unit": 17.00,
-#         "total_price": 17.00
-#     }
-# ]
 
 if "items" in st.session_state:      
     if st.button("🗑️ נקה והעלה מחדש", use_container_width=True):
@@ -159,4 +136,3 @@ else:
         with st.spinner("מנתח את החשבונית..."):
             st.session_state["items"] = image_to_list.get_menu_items(uploaded_file)
         st.rerun()
-
