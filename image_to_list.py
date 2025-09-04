@@ -1,11 +1,8 @@
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
 import base64
 import json
 import streamlit as st
 
-load_dotenv(override=True)
 google_api_key = st.secrets["GOOGLE_API_KEY"]
 gemini_via_openai_client = OpenAI(
     api_key=google_api_key, 
