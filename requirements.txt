@@ -2,7 +2,6 @@ streamlit
 dotenv
 pandas
 openai
-base64
 json
 os
 re
