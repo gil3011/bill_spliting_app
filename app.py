@@ -20,76 +20,79 @@ st.markdown(
 
 def create_menu(items):
     # הזנת הסועדים
-    st.warning("""
+    try:
+        st.warning("""
                ממולץ לעבור על הפריטים והנתונים ולוודא שהמחירים מתאימים לחשבונית שצולמה\n
                 ניתן להעלות תמונה מחדש במקרה הצורך
                """)
-    st.divider()
-    col1, col2  = st.columns([0.4, 0.6])
-    with col1:
-        st.subheader("הזן שמות סועדים:")
-    with col2: 
-        st.text_input("a", key="dinners", label_visibility="collapsed")
-    splitters = []
-    update_btn = st.button("עדכן סועדים", use_container_width=True)
-    if update_btn:
-        splitters = [p.strip() for p in re.split(r'[,\s]+', st.session_state.get("dinners", "")) if p.strip()]
-        st.session_state["splitters"] = splitters
-    elif "splitters" in st.session_state:
-        splitters = st.session_state["splitters"]
+        st.divider()
+        col1, col2  = st.columns([0.4, 0.6])
+        with col1:
+            st.subheader("הזן שמות סועדים:")
+        with col2: 
+            st.text_input("a", key="dinners", label_visibility="collapsed")
+        splitters = []
+        update_btn = st.button("עדכן סועדים", use_container_width=True)
+        if update_btn:
+            splitters = [p.strip() for p in re.split(r'[,\s]+', st.session_state.get("dinners", "")) if p.strip()]
+            st.session_state["splitters"] = splitters
+        elif "splitters" in st.session_state:
+            splitters = st.session_state["splitters"]
 
-    # רשימת הפריטים
-    st.subheader("פריטים", divider=True)
-    total_price = sum(float(i["price_per_unit"]) * int(i["quantity"]) for i in items)
-    for index, item in enumerate(items):
-        for i in range(int(item["quantity"])):
-            col1, col2 = st.columns([0.4, 0.6])
-            with col1:
-                st.text(f"{item['name']} - ₪{item['price_per_unit']}")
-            with col2:
-                st.multiselect("בחר סועדים",
-                    options= splitters,
-                    key=f"{index}_{i}",
-                    label_visibility="collapsed",
-                    placeholder="כולם"
-                )
+        # רשימת הפריטים
+        st.subheader("פריטים", divider=True)
+        total_price = sum(float(i["price_per_unit"]) * int(i["quantity"]) for i in items)
+        for index, item in enumerate(items):
+            for i in range(int(item["quantity"])):
+                col1, col2 = st.columns([0.4, 0.6])
+                with col1:
+                    st.text(f"{item['name']} - ₪{item['price_per_unit']}")
+                with col2:
+                    st.multiselect("בחר סועדים",
+                        options= splitters,
+                        key=f"{index}_{i}",
+                        label_visibility="collapsed",
+                        placeholder="כולם"
+                    )
 
-    # בחירת טיפ
-    st.divider()
-    col1, col2 = st.columns([0.5, 0.5])
-    with col1:
-        st.subheader("טיפ באחוזים:")
-    with col2: 
-        tip_percent = st.number_input("הכנס אחוז טיפ", min_value=0, value=0, step=1, label_visibility="collapsed")
-        tip_amount = total_price * (tip_percent / 100)
-        final_price = total_price + tip_amount
-    
-    # נתונים
-    st.divider()
-    col1, col2 = st.columns([0.5, 0.5])
-    with col1:
-        st.metric("סכום ללא טיפ" ,f"{total_price} ש\"ח")
-    with col2:
-        st.metric("סכום כולל טיפ" ,f"{round(final_price,2)} ש\"ח")
+        # בחירת טיפ
+        st.divider()
+        col1, col2 = st.columns([0.5, 0.5])
+        with col1:
+            st.subheader("טיפ באחוזים:")
+        with col2: 
+            tip_percent = st.number_input("הכנס אחוז טיפ", min_value=0, value=0, step=1, label_visibility="collapsed")
+            tip_amount = total_price * (tip_percent / 100)
+            final_price = total_price + tip_amount
+        
+        # נתונים
+        st.divider()
+        col1, col2 = st.columns([0.5, 0.5])
+        with col1:
+            st.metric("סכום ללא טיפ" ,f"{total_price} ש\"ח")
+        with col2:
+            st.metric("סכום כולל טיפ" ,f"{round(final_price,2)} ש\"ח")
 
-    # כפתור חישוב
-    calculate_btn = st.button("חשב מחיר לכל סועד", disabled=not splitters)
+        # כפתור חישוב
+        calculate_btn = st.button("חשב מחיר לכל סועד", disabled=not splitters)
 
-    if calculate_btn:
-        results = split_bill(tip_percent, items)
-        st.subheader(" טבלת פירוט לכל סועד")
-        table_data = []
-        for person, data in results.items():
-            table_data.append({
-                "סועד": person,
-                "מספר פריטים": data['item_count'],
-                "מחיר": f"₪{data['price']:.2f}",
-                "מחיר כולל טיפ": f"₪{data['price_with_tip']:.2f}"
-            })
-        df = pd.DataFrame(table_data)
-        df.set_index("סועד", inplace=True)
-        # Display as a static table
-        st.table(df)
+        if calculate_btn:
+            results = split_bill(tip_percent, items)
+            st.subheader(" טבלת פירוט לכל סועד")
+            table_data = []
+            for person, data in results.items():
+                table_data.append({
+                    "סועד": person,
+                    "מספר פריטים": data['item_count'],
+                    "מחיר": f"₪{data['price']:.2f}",
+                    "מחיר כולל טיפ": f"₪{data['price_with_tip']:.2f}"
+                })
+            df = pd.DataFrame(table_data)
+            df.set_index("סועד", inplace=True)
+            # Display as a static table
+            st.table(df)
+    except Exception as e:
+        st.subheader("קריאת התמונה נכשלה")
 
 def split_item(item_spliters,dinners_dict,item,tip_percent):
     for person in item_spliters:
