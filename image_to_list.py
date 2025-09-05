@@ -47,7 +47,9 @@ def get_menu_items(uploaded_image):
             }
         ]
     )
-    
-    cleaned_json = response.choices[0].message.content.strip("`json\n").strip("`")
-    # Parse into Python list
-    return json.loads(cleaned_json) 
+    try:
+        cleaned_json = response.choices[0].message.content.strip("`json\n").strip("`")
+        return json.loads(cleaned_json)
+    except Exception as e:
+        raise e
+
