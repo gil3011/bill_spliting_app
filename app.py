@@ -2,6 +2,10 @@ import streamlit as st
 import image_to_list
 import re
 import pandas as pd
+import streamlit as st
+from streamlit_cropper import st_cropper
+from PIL import Image
+import io
 
 st.set_page_config(page_title="Bill Spliter", page_icon="💵")
 
@@ -16,8 +20,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
 def create_menu(items):
     # הזנת הסועדים
     if not st.session_state["items"]:
@@ -31,9 +33,9 @@ def create_menu(items):
     st.divider()
     col1, col2  = st.columns([0.4, 0.6])
     with col1:
-        st.subheader("הזן שמות סועדים:")
+        st.subheader("הזן את שמות כל הסועדים:")
     with col2: 
-        st.text_input("a", key="dinners", label_visibility="collapsed")
+        st.text_input("a", key="dinners", label_visibility="collapsed",placeholder="לדוגמה: גיל רון מיקה")
     splitters = []
     update_btn = st.button("עדכן סועדים", use_container_width=True)
     if update_btn:
@@ -93,7 +95,6 @@ def create_menu(items):
             })
         df = pd.DataFrame(table_data)
         df.set_index("סועד", inplace=True)
-        # Display as a static table
         st.table(df)
 
 
@@ -123,12 +124,11 @@ def split_bill(tip_percent,items):
                 
     return people
 
+
 if "items" in st.session_state:      
     if st.button("🗑️ נקה והעלה מחדש", use_container_width=True):
-        # Clear the items and reset uploader
         if "items" in st.session_state:
             del st.session_state["items"]
-        # Clear the file uploader by incrementing a counter
         if "upload_counter" not in st.session_state:
             st.session_state["upload_counter"] = 0
         st.session_state["upload_counter"] += 1
@@ -137,11 +137,23 @@ if "items" in st.session_state:
 
 else:
     upload_key = f"image_uploader_{st.session_state.get('upload_counter', 0)}"
-    uploaded_file = st.file_uploader("בחר תמונה", type=["jpg", "jpeg", "png"], key=upload_key)
-    if uploaded_file:
-        with st.spinner("מנתח את החשבונית..."):
-            try:
-                st.session_state["items"] = image_to_list.get_menu_items(uploaded_file)
-            except Exception:
-                st.session_state["items"] = [] 
-        st.rerun()
+    img_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+    if img_file:
+        img = Image.open(img_file)
+
+        cropped_img = st_cropper(
+            img,
+            realtime_update=True,
+            box_color="#080808",
+            aspect_ratio=None
+        )
+        if st.button("נתח את החשבונית"):
+            with st.spinner("מנתח את החשבונית..."):
+                try:
+                    buffer = io.BytesIO()
+                    cropped_img.save(buffer, format="PNG")
+                    buffer.seek(0)
+                    st.session_state["items"] = image_to_list.get_menu_items(buffer)
+                except Exception:
+                    st.session_state["items"] = []
+            st.rerun()

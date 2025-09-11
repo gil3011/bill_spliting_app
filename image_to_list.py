@@ -2,6 +2,8 @@ from openai import OpenAI
 import base64
 import json
 import streamlit as st
+from PIL import Image, ImageEnhance
+import io
 
 google_api_key = st.secrets["GOOGLE_API_KEY"]
 gemini_via_openai_client = OpenAI(
@@ -18,11 +20,23 @@ price_per_unit: float = total_price ÷ quantity.
 Match prices to items logically. Ignore subtotal, tax, tip unless itemized.
 Output rules: - Return strictly a JSON-like Python list of dictionaries. - Do not include any extra text, explanations, or formatting outside the list.
 """
-def get_menu_items(uploaded_image):
-    # Read image bytes from the uploaded file
-    b64_img = base64.b64encode(uploaded_image.read()).decode("utf-8")
 
-    # Send image and prompt to OpenAI
+
+
+def get_menu_items(uploaded_image):
+    img = Image.open(uploaded_image)
+
+    bw = img.convert("L")
+
+    contrast_enhancer = ImageEnhance.Contrast(bw)
+    bw_contrast = contrast_enhancer.enhance(1.8)
+
+    sharpness_enhancer = ImageEnhance.Sharpness(bw_contrast)
+    final_img = sharpness_enhancer.enhance(2.0)
+    buffered = io.BytesIO()
+    final_img.save(buffered, format="PNG")
+    b64_img = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
     response = gemini_via_openai_client.chat.completions.create(
         model="gemini-2.5-flash",
         messages=[
@@ -35,7 +49,7 @@ def get_menu_items(uploaded_image):
                 "content": [
                     {
                         "type": "text",
-                        "text": "what are the items in this resturant bill?"
+                        "text": "what are the items in this restaurant bill?"
                     },
                     {
                         "type": "image_url",
@@ -47,6 +61,8 @@ def get_menu_items(uploaded_image):
             }
         ]
     )
+
+    # Step 4: Parse and return the result
     try:
         cleaned_json = response.choices[0].message.content.strip("`json\n").strip("`")
         return json.loads(cleaned_json)
