@@ -125,7 +125,7 @@ def split_bill(tip_percent,items):
     return people
 
 
-if "items" in st.session_state:      
+if "items" in st.session_state:         
     if st.button("🗑️ נקה והעלה מחדש", use_container_width=True):
         if "items" in st.session_state:
             del st.session_state["items"]
@@ -139,21 +139,26 @@ else:
     upload_key = f"image_uploader_{st.session_state.get('upload_counter', 0)}"
     img_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
     if img_file:
+        
         img = Image.open(img_file)
+        if img.format not in ["JPEG", "PNG"]:
+            st.error("פורמט תמונה לא נתמך. נא להעלות קובץ PNG או JPG.")
 
-        cropped_img = st_cropper(
-            img,
-            realtime_update=True,
-            box_color="#080808",
-            aspect_ratio=None
-        )
-        if st.button("נתח את החשבונית"):
-            with st.spinner("מנתח את החשבונית..."):
-                try:
-                    buffer = io.BytesIO()
-                    cropped_img.save(buffer, format="PNG")
-                    buffer.seek(0)
-                    st.session_state["items"] = image_to_list.get_menu_items(buffer)
-                except Exception:
-                    st.session_state["items"] = []
-            st.rerun()
+        else:
+            cropped_img = st_cropper(
+                img,
+                realtime_update=True,
+                box_color="#080808",
+                aspect_ratio=None
+            )
+            cropped_img = cropped_img.resize((800, int(800 * cropped_img.height / cropped_img.width)))
+            if st.button("נתח את החשבונית"):
+                with st.spinner("מנתח את החשבונית..."):
+                    try:
+                        buffer = io.BytesIO()
+                        cropped_img.save(buffer, format="PNG")
+                        buffer.seek(0)
+                        st.session_state["items"] = image_to_list.get_menu_items(buffer)
+                    except Exception:
+                        st.session_state["items"] = []
+                st.rerun()
