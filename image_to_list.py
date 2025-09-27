@@ -17,6 +17,7 @@ name:(string), try to find the most possible item menu based on the OCR. in the 
 quantity: integer. Use multiplier (e.g. x3) or infer from repeated lines. Side dishes/comments inherit quantity from item above. Items may be sold by weight, partial quantities will be converted to quantity 1 .
 total_price: float. Normalize (no currency symbols, commas, etc.). do not include if equal 0
 price_per_unit: float = total_price ÷ quantity.
+if there's a discount for the whole bill add it as an item with negative price and quantity 1. 
 Match prices to items logically. Ignore subtotal, tax, tip unless itemized. make sure every item that have a price is recognized
 Output rules: - Return strictly a JSON-like Python list of dictionaries. - Do not include any extra text, explanations, or formatting outside the list.
 """
