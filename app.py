@@ -314,13 +314,12 @@ else:
     upload_key = f"image_uploader_{st.session_state.get('upload_counter', 0)}"
     img_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
     if img_file:
-        
         img = Image.open(img_file)
         if img.format not in ["JPEG", "PNG"]:
             st.error("פורמט תמונה לא נתמך. נא להעלות קובץ PNG או JPG.")
 
         else:
-            img = img.resize((800, int(800 * cropped_img.height / cropped_img.width)))
+            img = img.resize((800, int(800 * img.height / img.width)))
             if st.button("נתח את החשבונית"):
                 with st.spinner("מנתח את החשבונית..."):
                     try:
