@@ -256,19 +256,30 @@ def create_menu(items):
 
     if calculate_btn:
         results = split_bill(tip_percent, items)
-        st.subheader(" טבלת פירוט לכל סועד")
-        table_data = []
+        st.subheader("📊 טבלת פירוט לכל סועד")
+
+        # כותרות
+        header_cols = st.columns([2, 2, 2, 3])
+        header_cols[0].markdown("**🧍‍♂️ סועד**")
+        header_cols[1].markdown("**💰 מחיר**")
+        header_cols[2].markdown("**💸 כולל טיפ**")
+        header_cols[3].markdown("**📦 פריטים**")
+
+        st.markdown("---")
+
+        # שורות הטבלה
         for person, data in results.items():
-            table_data.append({
-                "סועד": person,
-                "פריטים": "\n".join(f"- {it}" for it in data["items"]), ###
-                "מספר פריטים": data['item_count'],
-                "מחיר": f"₪{data['price']:.2f}",
-                "מחיר כולל טיפ": f"₪{data['price_with_tip']:.2f}"
-            })
-        df = pd.DataFrame(table_data)
-        df.set_index("סועד", inplace=True)
-        st.table(df)
+            cols = st.columns([2, 2, 2, 3])
+
+            cols[0].markdown(f"**{person}**")
+            cols[1].markdown(f"₪{data['price']:.2f}")
+            cols[2].markdown(f"₪{data['price_with_tip']:.2f}")
+
+            with cols[3].expander(f"📋 {data['item_count']} פריטים"):
+                for item in data["items"]:
+                    st.markdown(f"- {item}")
+
+            st.markdown("---")
 
 
 def split_item(item_spliters,dinners_dict,item,tip_percent):
